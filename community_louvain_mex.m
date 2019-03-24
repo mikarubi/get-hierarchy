@@ -31,7 +31,7 @@ function [M,Q]=community_louvain_mex(W,gamma,M0,B)
 %               gamma>1,        detects smaller modules
 %               0<=gamma<1,     detects larger modules
 %               gamma=1,        classic modularity (default)
-%       M0,     
+%       M0,
 %           initial community affiliation vector (optional)
 %       B,
 %           objective-function type or custom objective matrix (optional)
@@ -45,16 +45,16 @@ function [M,Q]=community_louvain_mex(W,gamma,M0,B)
 %           symmetric vs. asymmetric treatment of negative weights.
 %
 %   Outputs:
-%       M,      
+%       M,
 %           community affiliation vector
-%       Q,  
+%       Q,
 %           optimized community-structure statistic (modularity by default)
 %
 %   Example:
 %       % Iterative community finetuning.
 %       % W is the input connection matrix.
 %       n  = size(W,1);             % number of nodes
-%       M  = 1:n;                   % initial community affiliations 
+%       M  = 1:n;                   % initial community affiliations
 %       Q0 = -1; Q1 = 0;            % initialize modularity values
 %       while Q1-Q0>1e-5;           % while modularity increases
 %           Q0 = Q1;                % perform community detection
@@ -118,11 +118,20 @@ end
 
 if type_B
     switch type_B
-        case 'modularity';      B = (W-gamma*(sum(W,2)*sum(W,1))/s)/s;
-        case 'potts';           B =  W-gamma*(~W);
-        case 'negative_sym';    B = B0/(s0+s1) - B1/(s0+s1);
-        case 'negative_asym';   B = B0/s0      - B1/(s0+s1);
-        otherwise;              error('Unknown objective function.');
+        case 'modularity'
+            if gamma > 0
+                B = (W-gamma*(sum(W,2)*sum(W,1))/s)/s;
+            else
+                B = (W-abs(gamma)*mean(W(:)));
+            end
+        case 'potts'
+            B =  W-gamma*(~W);
+        case 'negative_sym'
+            B = B0/(s0+s1) - B1/(s0+s1);
+        case 'negative_asym'
+            B = B0/s0      - B1/(s0+s1);
+        otherwise
+            error('Unknown objective function.');
     end
 else                            % custom objective function matrix as input
     B = double(B);
